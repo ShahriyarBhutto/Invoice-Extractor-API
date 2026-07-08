@@ -8,7 +8,8 @@ app = FastAPI()
 
 @app.post("/invoice-extrator")
 async def extract_invoice(file:UploadFile):
-    if not file.filename.startswith(".pdf"):
+    if not file.filename.endswith(".pdf"):
+        print(file.filename)
         raise HTTPException(status_code=400,detail="Not a valid file formate, Please upload .pdf files only")
     text =  extratct_text_from_pdf(file.file)
     if not text.strip():
