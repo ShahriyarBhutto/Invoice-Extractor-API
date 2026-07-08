@@ -8,8 +8,8 @@ load_dotenv()
 
 
 client = OpenAI(
-    base_url="",
-    api_key= os.environ[""]
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ["OPENROUTER_API_KEY"]
 )
 
 
@@ -21,9 +21,13 @@ def extratct_text_from_pdf(file):
     return text
 
 def get_structured_data(text):
-    prompt = f"{text}"
+    prompt = f"""
+    Extract order_id, customer, amount, date from this invoice.
+    Return ONLY valid JSON, no markdown.
+    Text: {text}
+    """
     response = client.chat.completions.create(
-        model="",
+        model="poolside/laguna-xs-2.1:free",
         messages=[{"role":"user","content":prompt}]
     )
     clean_text = response.choices[0].message.content.strip().replace("```json","").replace("```","")
