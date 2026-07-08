@@ -11,6 +11,8 @@ async def extract_invoice(file:UploadFile):
     if not file.filename.startswith(".pdf"):
         raise HTTPException(status_code=400,detail="Not a valid file formate, Please upload .pdf files only")
     text =  extratct_text_from_pdf(file.file)
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="No text found inside PDF")
     try:
         data = get_structured_data(text)
         return data
