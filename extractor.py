@@ -13,22 +13,39 @@ client = OpenAI(
 )
 
 
-def extratct_text_from_pdf(file):
+def extratct_text_from_pdf(file) -> str:
     with pdfplumber.open(file) as pdf:
         text = ""
         for page in pdf.pages:
-            text += page.extract_text()
-    return text
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n" 
+    return text.strip()
 
-def get_structured_data(text):
-    prompt = f"""
-    Extract order_id, customer, amount, date from this invoice.
-    Return ONLY valid JSON, no markdown.
-    Text: {text}
-    """
+def get_structured_data(text:str)-> dict:
+    prompt = f"""You are an invoice data extraction assistant.
+Extract the following fields from the invoice text below.
+Return ONLY a valid JSON object — no explanation, no markdown, no extra text.
+
+Required fields:
+- order_id: invoice number or order ID (string)
+- customer: customer name (string)  
+- amount: total amount as number only, no currency symbol (float)
+- date: invoice date in YYYY-MM-DD format (string)
+
+If a field is not found, use null.
+
+Invoice text:
+{text}"""
     response = client.chat.completions.create(
         model="poolside/laguna-xs-2.1:free",
-        messages=[{"role":"user","content":prompt}]
+        messages=[{"role":"user","content":prompt}],
+        temperature= 0.1
     )
-    clean_text = response.choices[0].message.content.strip().replace("```json","").replace("```","")
-    return json.loads(clean_text)
+    raw = response.choices[0].message.content.strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+        raw = raw.strip()
+    return json.loads(raw)
