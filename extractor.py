@@ -13,7 +13,7 @@ client = OpenAI(
 )
 
 
-def extratct_text_from_pdf(file) -> str:
+def extract_text_from_pdf(file) -> str:
     with pdfplumber.open(file) as pdf:
         text = ""
         for page in pdf.pages:
